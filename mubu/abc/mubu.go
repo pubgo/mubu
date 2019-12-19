@@ -7,15 +7,15 @@ import (
 
 type IMubu interface {
 	// 登陆获取Cookie
-	Login(phone, password string) []*http.Cookie
+	Login(phone, password string) ([]*http.Cookie, error)
 	// 文件列表 , sort=time
-	ListDoc(folderId, sort, keywords, source string) *models.ListDoc
+	ListDoc(folderId, sort, keywords, source string) (*models.ListDoc, error)
 	// 获取文件
-	GetDoc(docId string) *models.GetDoc
+	GetDoc(docId string) (*models.GetDoc, error)
 	// 创建分享链接
-	CreateLink(docId string) *models.CreateLink
+	CreateLink(docId string) (*models.CreateLink, error)
 	// 关闭分享链接
-	CloseLink(docId string) *models.CloseLink
+	CloseLink(docId string) (*models.CloseLink, error)
 	// 刷新链接
-	RefreshLink(docId string) *models.RefreshLink
+	RefreshLink(docId string) (*models.RefreshLink, error)
 }

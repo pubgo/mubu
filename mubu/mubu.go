@@ -1,6 +1,7 @@
 package mubu
 
 import (
+	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/pubgo/g/xenv"
 	"github.com/pubgo/mubu/mubu/abc"
@@ -53,4 +54,10 @@ func New() *mubu {
 	_mb := &mubu{}
 	_mb._init()
 	return _mb
+}
+
+var _url = func(url string) func(...interface{}) string {
+	return func(params ...interface{}) string {
+		return fmt.Sprintf(url, params...)
+	}
 }
