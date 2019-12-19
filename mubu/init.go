@@ -9,6 +9,3 @@ var _url = func(url string) func(...interface{}) string {
 		return fmt.Sprintf(url, params...)
 	}
 }
-
-
-//

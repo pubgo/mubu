@@ -46,7 +46,6 @@ type errMsg struct {
 func decode2Err(err xerror.IErr, data string) {
 	var m errMsg
 	xerror.Exit(json.Unmarshal([]byte(data), &m), ErrJsonUnmarshal)
-
 	err.M("status", m.Status)
 	err.M("code", m.Code)
 	err.M("message", m.Message)

@@ -1,10 +1,6 @@
 package models
 
-
-// https://mubu.com/api/document/create_link
-// docId: g9-sXP3WD
-
-type CreateShare struct {
+type CreateLink struct {
 	Code int         `json:"code"`
 	Msg  interface{} `json:"msg"`
 	Data struct {
@@ -15,10 +11,7 @@ type CreateShare struct {
 	} `json:"data"`
 }
 
-
-// https://mubu.com/api/document/close_link
-// docId: g9-sXP3WD
-type CloseShare struct {
+type CloseLink struct {
 	Code int         `json:"code"`
 	Msg  interface{} `json:"msg"`
 	Data struct {
@@ -27,7 +20,13 @@ type CloseShare struct {
 	} `json:"data"`
 }
 
-
-
-// https://mubu.com/api/export/file
-//
+type RefreshLink struct {
+	Code int `json:"code"`
+	Data struct {
+		SetShareID bool   `json:"setShareId"`
+		SetVersion bool   `json:"setVersion"`
+		ShareID    string `json:"shareId"`
+		Version    int    `json:"version"`
+	} `json:"data"`
+	Msg interface{} `json:"msg"`
+}

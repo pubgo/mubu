@@ -3,6 +3,7 @@ package mubu
 import (
 	"github.com/go-resty/resty/v2"
 	"github.com/pubgo/g/xenv"
+	"github.com/pubgo/mubu/mubu/abc"
 	"time"
 )
 
@@ -13,6 +14,10 @@ type mubu struct {
 	Timeout          int  // default 60 second
 	Debug            bool // default true
 	client           *resty.Client
+}
+
+func (t *mubu) API() abc.IMubu {
+	return &mubuImpl{c: t.client}
 }
 
 func (t *mubu) _init() {
