@@ -37,25 +37,27 @@ func (t *mubuImpl) Login(phone, password string) (cookie []*http.Cookie, err err
 		decode2Err(err, resp.String())
 	})
 
-	return resp.Cookies(), nil
+	// 添加cookie
+	t.c = t.c.SetCookies(resp.Cookies())
+	return t.c.Cookies, nil
 }
 
-func (t *mubuImpl) ListDoc(folderId, sort, keywords, source string) (*models.ListDoc, error) {
-	panic("implement me")
+func (t *mubuImpl) ListDoc(folderId, sort, keywords, source string) (data *models.ListDoc, err error) {
+	return data, _post(t.c.R(), _getList(), map[string]string{"folderId": "", "sort": "time", "keywords": "", "source": ""}, data)
 }
 
-func (t *mubuImpl) GetDoc(docId string) (*models.GetDoc, error) {
-	panic("implement me")
+func (t *mubuImpl) GetDoc(docId string) (data *models.GetDoc, err error) {
+	return data, _post(t.c.R(), _getDoc(), map[string]string{"docId": docId}, data)
 }
 
-func (t *mubuImpl) CreateLink(docId string) (*models.CreateLink, error) {
-	panic("implement me")
+func (t *mubuImpl) CreateLink(docId string) (data *models.CreateLink, err error) {
+	return data, _post(t.c.R(), _createLink(), map[string]string{"docId": docId}, data)
 }
 
-func (t *mubuImpl) CloseLink(docId string) (*models.CloseLink, error) {
-	panic("implement me")
+func (t *mubuImpl) CloseLink(docId string) (data *models.CloseLink, err error) {
+	return data, _post(t.c.R(), _closeLink(), map[string]string{"docId": docId}, data)
 }
 
-func (t *mubuImpl) RefreshLink(docId string) (*models.RefreshLink, error) {
-	panic("implement me")
+func (t *mubuImpl) RefreshLink(docId string) (data *models.RefreshLink, err error) {
+	return data, _post(t.c.R(), _refreshLink(), map[string]string{"docId": docId}, data)
 }
