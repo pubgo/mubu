@@ -1,5 +1,20 @@
 package models
 
+import "encoding/json"
+
+type Node struct {
+	Collapsed bool   `json:"collapsed,omitempty"`
+	Finish    bool   `json:"finish,omitempty"`
+	ID        string `json:"id,omitempty"`
+	Modified  int    `json:"modified,omitempty"`
+	Text      string `json:"text,omitempty"`
+	Children  []Node `json:"children,omitempty"`
+}
+
+type Nodes struct {
+	Nodes []Node `json:"nodes,omitempty"`
+}
+
 type GetDoc struct {
 	Code int `json:"code"`
 	Data struct {
@@ -9,6 +24,26 @@ type GetDoc struct {
 		Role        int    `json:"role"`
 	} `json:"data"`
 	Msg string `json:"msg"`
+}
+
+func (t *GetDoc) Nodes() (nodes *Nodes, _ error) {
+	if t.Data.Definition == "" {
+		return nil, nil
+	}
+	nodes = new(Nodes)
+	return nodes, json.Unmarshal([]byte(t.Data.Definition), nodes)
+}
+
+func (t *GetDoc) Title() string {
+	return t.Data.Name
+}
+
+func (t *GetDoc) Version() int {
+	return t.Data.BaseVersion
+}
+
+func (t *GetDoc) Role() int {
+	return t.Data.Role
 }
 
 type Dir struct {
@@ -62,10 +97,10 @@ type Folder struct {
 type ListDoc struct {
 	Code int `json:"code"`
 	Data struct {
-		Dir       []interface{} `json:"dir"`
-		Documents []interface{} `json:"documents"`
-		FolderID  string        `json:"folderId"`
-		Folders   []interface{} `json:"folders"`
+		Dir       []Dir      `json:"dir"`
+		Documents []Document `json:"documents"`
+		FolderID  string     `json:"folderId"`
+		Folders   []Folder   `json:"folders"`
 	} `json:"data"`
 	Msg interface{} `json:"msg"`
 }

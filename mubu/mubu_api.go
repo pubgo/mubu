@@ -22,6 +22,24 @@ type mubuImpl struct {
 	c *resty.Client
 }
 
+func (t *mubuImpl) Walk(folderId, sort, keywords, source string, fn func(*models.ListDoc, error) error) error {
+	_list, err := t.ListDoc(folderId, sort, keywords, source)
+	if err := fn(_list, err); err != nil {
+		return err
+	}
+	if _list.Data.Folders == nil || len(_list.Data.Folders) == 0 {
+		return nil
+	}
+
+	for _, f := range _list.Data.Folders {
+		if err := t.Walk(f.ID, sort, keywords, source, fn); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (t *mubuImpl) Login(phone, password string) (cookie []*http.Cookie, err error) {
 	defer xerror.RespErr(&err)
 
@@ -43,21 +61,26 @@ func (t *mubuImpl) Login(phone, password string) (cookie []*http.Cookie, err err
 }
 
 func (t *mubuImpl) ListDoc(folderId, sort, keywords, source string) (data *models.ListDoc, err error) {
-	return data, _post(t.c.R(), _getList(), map[string]string{"folderId": "", "sort": "time", "keywords": "", "source": ""}, data)
+	data = &models.ListDoc{}
+	return data, _post(t.c.R(), _getList(), map[string]string{"folderId": folderId, "sort": sort, "keywords": keywords, "source": source}, data)
 }
 
 func (t *mubuImpl) GetDoc(docId string) (data *models.GetDoc, err error) {
+	data = &models.GetDoc{}
 	return data, _post(t.c.R(), _getDoc(), map[string]string{"docId": docId}, data)
 }
 
 func (t *mubuImpl) CreateLink(docId string) (data *models.CreateLink, err error) {
+	data = &models.CreateLink{}
 	return data, _post(t.c.R(), _createLink(), map[string]string{"docId": docId}, data)
 }
 
 func (t *mubuImpl) CloseLink(docId string) (data *models.CloseLink, err error) {
+	data = &models.CloseLink{}
 	return data, _post(t.c.R(), _closeLink(), map[string]string{"docId": docId}, data)
 }
 
 func (t *mubuImpl) RefreshLink(docId string) (data *models.RefreshLink, err error) {
+	data = &models.RefreshLink{}
 	return data, _post(t.c.R(), _refreshLink(), map[string]string{"docId": docId}, data)
 }
