@@ -1,18 +1,26 @@
 package models
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+	"github.com/pubgo/g/xerror"
+	"regexp"
+	"strings"
+)
+
+var classRex = regexp.MustCompile(`<span class="(.+)">`)
 
 type Node struct {
 	Collapsed bool   `json:"collapsed,omitempty"`
 	Finish    bool   `json:"finish,omitempty"`
 	ID        string `json:"id,omitempty"`
 	Color     string `json:"color,omitempty"`
-	Heading   string `json:"heading,omitempty"`
+	Heading   int    `json:"heading,omitempty"`
 	Modified  int    `json:"modified,omitempty"`
 	Text      string `json:"text,omitempty"`
 	Children  []Node `json:"children,omitempty"`
 	// bold italic underline
-	// font-weight: bold; text-decoration: underline; font-style: italic;
+	// font-weight: bold; font-style: italic; text-decoration: underline; text-decoration: line-through;
 	Class  []string               `json:"-"`
 	Style  map[string]interface{} `json:"-"`
 	Images []struct {
@@ -36,7 +44,8 @@ type GetDoc struct {
 		Name        string `json:"name"`
 		Role        int    `json:"role"`
 	} `json:"data"`
-	Msg string `json:"msg"`
+	Msg      string `json:"msg"`
+	markdown string
 }
 
 func (t *GetDoc) Nodes() (nodes *Nodes, _ error) {
@@ -60,7 +69,62 @@ func (t *GetDoc) Role() int {
 }
 
 func (t *GetDoc) Markdown(level int) string {
-	panic("not implemented")
+	t.markdown = fmt.Sprintf("# %s\n\n", t.Title())
+	for _, node := range xerror.PanicErr(t.Nodes()).(*Nodes).Nodes {
+		t.markdown += t._Markdown(0, node)
+	}
+	return t.markdown
+}
+
+/*
+	Text      string `json:"text,omitempty"`
+	Children  []Node `json:"children,omitempty"`
+	Images []struct {
+		ID  string `json:"id"`
+		Oh  int    `json:"oh"`
+		Ow  int    `json:"ow"`
+		URI string `json:"uri"`
+		W   int    `json:"w"`
+	} `json:"images,omitempty"`
+*/
+
+func (t *GetDoc) _Markdown(level int, node Node) string {
+	node.Text = strings.TrimSpace(node.Text)
+	node.Text = strings.ReplaceAll(node.Text, "\\", "")
+	if node.Text == "" {
+		return "\n"
+	}
+
+	_markdown := ""
+
+	if classRex.MatchString(node.Text) {
+		for _, c := range classRex.FindStringSubmatch(node.Text)[1:] {
+			switch c {
+			case "bold":
+				node.Text = fmt.Sprintf("**%s**", node.Text)
+			case "italic":
+				node.Text = fmt.Sprintf("_%s_", node.Text)
+			case "underline":
+				node.Text = fmt.Sprintf("__%s__", node.Text)
+			}
+		}
+	}
+
+	if node.Finish {
+		node.Text = fmt.Sprintf("~~%s~~", node.Text)
+	}
+
+	if level < 4 {
+		node.Text = strings.TrimSpace(fmt.Sprintf("%s %s", strings.Repeat("#", node.Heading), node.Text))
+	} else {
+
+	}
+
+	if node.Images != nil && len(node.Images) != 0 {
+		_markdown += fmt.Sprintf("![image](%s)", node.Images[0].URI)
+	}
+
+	return ""
 }
 
 func (t *GetDoc) Html() string {
