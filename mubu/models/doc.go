@@ -6,9 +6,22 @@ type Node struct {
 	Collapsed bool   `json:"collapsed,omitempty"`
 	Finish    bool   `json:"finish,omitempty"`
 	ID        string `json:"id,omitempty"`
+	Color     string `json:"color,omitempty"`
+	Heading   string `json:"heading,omitempty"`
 	Modified  int    `json:"modified,omitempty"`
 	Text      string `json:"text,omitempty"`
 	Children  []Node `json:"children,omitempty"`
+	// bold italic underline
+	// font-weight: bold; text-decoration: underline; font-style: italic;
+	Class  []string               `json:"-"`
+	Style  map[string]interface{} `json:"-"`
+	Images []struct {
+		ID  string `json:"id"`
+		Oh  int    `json:"oh"`
+		Ow  int    `json:"ow"`
+		URI string `json:"uri"`
+		W   int    `json:"w"`
+	} `json:"images,omitempty"`
 }
 
 type Nodes struct {
@@ -44,6 +57,14 @@ func (t *GetDoc) Version() int {
 
 func (t *GetDoc) Role() int {
 	return t.Data.Role
+}
+
+func (t *GetDoc) Markdown(level int) string {
+	panic("not implemented")
+}
+
+func (t *GetDoc) Html() string {
+	panic("not implemented")
 }
 
 type Dir struct {
