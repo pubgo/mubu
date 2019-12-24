@@ -9,13 +9,13 @@ import (
 )
 
 var (
-	_            abc.IMubu = (*mubuImpl)(nil)
-	_login                 = _url("/api/login/submit")
-	_getDoc                = _url("/api/document/get")
-	_getList               = _url("/api/list/get")
-	_createLink            = _url("/api/document/create_link")
-	_closeLink             = _url("/api/document/close_link")
-	_refreshLink           = _url("/api/document/refresh_link")
+	_            abc.IMubuAPI = (*mubuImpl)(nil)
+	_login                    = _url("/api/login/submit")
+	_getDoc                   = _url("/api/document/get")
+	_getList                  = _url("/api/list/get")
+	_createLink               = _url("/api/document/create_link")
+	_closeLink                = _url("/api/document/close_link")
+	_refreshLink              = _url("/api/document/refresh_link")
 )
 
 type mubuImpl struct {
