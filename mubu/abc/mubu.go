@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-type IMubu interface {
+type IMubuAPI interface {
 	// 登陆获取Cookie
 	Login(phone, password string) ([]*http.Cookie, error)
 	// 文件列表 , sort=time
@@ -20,4 +20,8 @@ type IMubu interface {
 	CloseLink(docId string) (*models.CloseLink, error)
 	// 刷新链接
 	RefreshLink(docId string) (*models.RefreshLink, error)
+}
+
+type IMubu interface {
+	API() IMubuAPI
 }
