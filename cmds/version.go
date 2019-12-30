@@ -1,4 +1,4 @@
-package mubu
+package cmds
 
 import (
 	"github.com/pubgo/g/xenv"
