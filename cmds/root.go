@@ -9,5 +9,6 @@ import (
 var Execute = xcmd.Init(func(cmd *xcmd.Command) {
 	cmd.AddCommand(
 		mubu.Test(),
+		mubu.Env(),
 	)
 })
