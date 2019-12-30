@@ -10,7 +10,7 @@ import (
 func Env() *xcmd.Command {
 	_name := ".env"
 	_data := `
-env_prefix=project name 
+env_prefix=project name or project env prefix
 phone=!{Encrypted phone}
 password=!{Encrypted password}
 `
