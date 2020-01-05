@@ -8,8 +8,6 @@ import (
 	"strings"
 )
 
-var classRex = regexp.MustCompile(`<span class="(.+)">`)
-
 type Node struct {
 	Collapsed bool   `json:"collapsed,omitempty"`
 	Finish    bool   `json:"finish,omitempty"`
@@ -46,6 +44,7 @@ type GetDoc struct {
 	} `json:"data"`
 	Msg      string `json:"msg"`
 	markdown string
+	nodes    Nodes
 }
 
 func (t *GetDoc) Nodes() (nodes *Nodes, _ error) {
@@ -68,44 +67,39 @@ func (t *GetDoc) Role() int {
 	return t.Data.Role
 }
 
-func (t *GetDoc) Markdown(level int) string {
+func (t *GetDoc) Markdown() string {
 	t.markdown = fmt.Sprintf("# %s\n\n", t.Title())
 	for _, node := range xerror.PanicErr(t.Nodes()).(*Nodes).Nodes {
-		t.markdown += t._Markdown(0, node)
+		t.markdown += t._Markdown(0, node) + "\n\n"
 	}
 	return t.markdown
 }
 
-/*
-	Text      string `json:"text,omitempty"`
-	Children  []Node `json:"children,omitempty"`
-	Images []struct {
-		ID  string `json:"id"`
-		Oh  int    `json:"oh"`
-		Ow  int    `json:"ow"`
-		URI string `json:"uri"`
-		W   int    `json:"w"`
-	} `json:"images,omitempty"`
-*/
+var trim = strings.TrimSpace
+var replaceAll = strings.ReplaceAll
+var classRex = regexp.MustCompile(`class="(.+)"`)
+var valueRex = regexp.MustCompile(`.*>(.+)<`)
 
 func (t *GetDoc) _Markdown(level int, node Node) string {
-	node.Text = strings.TrimSpace(node.Text)
-	node.Text = strings.ReplaceAll(node.Text, "\\", "")
+	node.Text = replaceAll(trim(node.Text), "\\", "")
 	if node.Text == "" {
-		return "\n"
+		return ""
 	}
 
 	_markdown := ""
 
 	if classRex.MatchString(node.Text) {
-		for _, c := range classRex.FindStringSubmatch(node.Text)[1:] {
+		_text1 := valueRex.FindStringSubmatch(node.Text)
+		_text := _text1[len(_text1)-1]
+		for _, c := range strings.Split(classRex.FindStringSubmatch(node.Text)[1], " ") {
+
 			switch c {
 			case "bold":
-				node.Text = fmt.Sprintf("**%s**", node.Text)
+				node.Text = fmt.Sprintf("**%s**", _text)
 			case "italic":
-				node.Text = fmt.Sprintf("_%s_", node.Text)
+				node.Text = fmt.Sprintf("*%s*", _text)
 			case "underline":
-				node.Text = fmt.Sprintf("__%s__", node.Text)
+				node.Text = fmt.Sprintf("_%s_", _text)
 			}
 		}
 	}
@@ -114,17 +108,30 @@ func (t *GetDoc) _Markdown(level int, node Node) string {
 		node.Text = fmt.Sprintf("~~%s~~", node.Text)
 	}
 
-	if level < 4 {
-		node.Text = strings.TrimSpace(fmt.Sprintf("%s %s", strings.Repeat("#", node.Heading), node.Text))
+	if node.Heading == 0 {
+		level += 1
+		_markdown = fmt.Sprintf("%s1. %s",strings.Repeat("  ", level), node.Text)
 	} else {
-
+		level = 0
+		_markdown = fmt.Sprintf("%s %s\n", strings.Repeat("#", node.Heading), node.Text)
 	}
 
 	if node.Images != nil && len(node.Images) != 0 {
-		_markdown += fmt.Sprintf("![image](%s)", node.Images[0].URI)
+		_markdown += "\n\n"
+		_markdown += fmt.Sprintf("![image](https://mubu.com/%s)\n\n", node.Images[0].URI)
 	}
 
-	return ""
+	for _, n := range node.Children {
+		_a := t._Markdown(level, n)
+		if _a == "" {
+			continue
+		}
+
+		_markdown += "\n"
+		_markdown += _a
+	}
+
+	return _markdown
 }
 
 func (t *GetDoc) Html() string {
