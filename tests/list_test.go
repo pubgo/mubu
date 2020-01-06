@@ -47,12 +47,13 @@ func TestDoc(t *testing.T) {
 	//_, err := mb.API().ListDoc("i-LGHOgX7", "time", "", "")
 	//xerror.P(err, "")
 	//fmt.Printf("%#v", xerror.PanicErr(mb.API().ListDoc("i-LGHOgX7", "time", "", "")))
-	ld := xerror.PanicErr(mb.API().GetDoc("9Gx9BDBXD")).(*models.GetDoc)
+	ld := xerror.PanicErr(mb.API().GetDoc("k2YvvvIY7")).(*models.GetDoc)
 	//fmt.Println(ld.Title())
 	//fmt.Println(ld.Version())
 	//fmt.Println(ld.Role())
 	//fmt.Println(ld.Nodes())
-	fmt.Println(ld.Markdown())
+	//fmt.Println(ld.Markdown())
+	fmt.Println(ld.Html())
 }
 
 func TestMode(t *testing.T) {
