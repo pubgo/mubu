@@ -10,4 +10,3 @@ phone=!{Encrypted phone}
 password=!{Encrypted password}
 EOF
 ```
-

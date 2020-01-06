@@ -3,7 +3,9 @@ package models
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/PuerkitoBio/goquery"
 	"github.com/pubgo/g/xerror"
+	"gopkg.in/russross/blackfriday.v2"
 	"regexp"
 	"strings"
 )
@@ -42,9 +44,8 @@ type GetDoc struct {
 		Name        string `json:"name"`
 		Role        int    `json:"role"`
 	} `json:"data"`
-	Msg      string `json:"msg"`
-	markdown string
-	nodes    Nodes
+	Msg   string `json:"msg"`
+	nodes Nodes
 }
 
 func (t *GetDoc) Nodes() (nodes *Nodes, _ error) {
@@ -68,74 +69,81 @@ func (t *GetDoc) Role() int {
 }
 
 func (t *GetDoc) Markdown() string {
-	t.markdown = fmt.Sprintf("# %s\n\n", t.Title())
+	markdown := fmt.Sprintf("# %s\n", t.Title())
 	for _, node := range xerror.PanicErr(t.Nodes()).(*Nodes).Nodes {
-		t.markdown += t._Markdown(0, node) + "\n\n"
+		_md := trim(t._Markdown(0, node))
+		if _md == "" {
+			continue
+		}
+
+		markdown += _md + "\n\n"
 	}
-	return t.markdown
+	return trim(markdown)
 }
 
 var trim = strings.TrimSpace
+var printf = fmt.Sprintf
 var replaceAll = strings.ReplaceAll
 var classRex = regexp.MustCompile(`class="(.+)"`)
-var valueRex = regexp.MustCompile(`.*>(.+)<`)
 
 func (t *GetDoc) _Markdown(level int, node Node) string {
-	node.Text = replaceAll(trim(node.Text), "\\", "")
-	if node.Text == "" {
-		return ""
+	_markdown := ""
+	_text := replaceAll(trim(node.Text), "\\", "")
+	if _text == "" {
+		return _markdown
 	}
 
-	_markdown := ""
-
-	if classRex.MatchString(node.Text) {
-		_text1 := valueRex.FindStringSubmatch(node.Text)
-		_text := _text1[len(_text1)-1]
-		for _, c := range strings.Split(classRex.FindStringSubmatch(node.Text)[1], " ") {
-
+	if classRex.MatchString(_text) {
+		_text1 := xerror.PanicErr(goquery.NewDocumentFromReader(strings.NewReader(_text))).(*goquery.Document).Text()
+		for _, c := range strings.Split(classRex.FindStringSubmatch(_text)[1], " ") {
 			switch c {
 			case "bold":
-				node.Text = fmt.Sprintf("**%s**", _text)
+				_text1 = printf("**%s**", _text1)
 			case "italic":
-				node.Text = fmt.Sprintf("*%s*", _text)
+				_text1 = printf("*%s*", _text1)
 			case "underline":
-				node.Text = fmt.Sprintf("_%s_", _text)
+				_text1 = printf("_%s_", _text1)
 			}
 		}
+		_text = _text1
 	}
 
 	if node.Finish {
-		node.Text = fmt.Sprintf("~~%s~~", node.Text)
+		_text = printf("~~%s~~", _text)
 	}
 
 	if node.Heading == 0 {
 		level += 1
-		_markdown = fmt.Sprintf("%s1. %s",strings.Repeat("  ", level), node.Text)
+		_markdown = printf("%s1. %s", strings.Repeat("  ", level), _text)
+
+		if node.Images != nil && len(node.Images) != 0 {
+			_markdown += printf("\n%s![image](https://mubu.com/%s)\n\n", strings.Repeat("  ", level+1), node.Images[0].URI)
+		}
 	} else {
 		level = 0
-		_markdown = fmt.Sprintf("%s %s\n", strings.Repeat("#", node.Heading), node.Text)
-	}
-
-	if node.Images != nil && len(node.Images) != 0 {
-		_markdown += "\n\n"
-		_markdown += fmt.Sprintf("![image](https://mubu.com/%s)\n\n", node.Images[0].URI)
-	}
-
-	for _, n := range node.Children {
-		_a := t._Markdown(level, n)
-		if _a == "" {
-			continue
+		_markdown = printf("%s %s\n", strings.Repeat("#", node.Heading), _text)
+		if node.Images != nil && len(node.Images) != 0 {
+			_markdown += printf("\n%s![image](https://mubu.com/%s)\n\n", strings.Repeat("  ", level+1), node.Images[0].URI)
 		}
+	}
 
+	if len(node.Children) > 0 {
 		_markdown += "\n"
-		_markdown += _a
+		for _, n := range node.Children {
+			_a := t._Markdown(level, n)
+			if _a == "" {
+				continue
+			}
+			_markdown += _a
+		}
 	}
 
 	return _markdown
 }
 
 func (t *GetDoc) Html() string {
-	panic("not implemented")
+	_m1 := blackfriday.Run([]byte(t.Markdown()))
+	return string(_m1)
 }
 
 type Dir struct {
