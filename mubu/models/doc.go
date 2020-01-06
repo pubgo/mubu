@@ -114,21 +114,20 @@ func (t *GetDoc) _Markdown(level int, node Node) string {
 
 	if node.Heading == 0 {
 		level += 1
-		_markdown = printf("%s1. %s", strings.Repeat("  ", level), _text)
+		_markdown = printf("%s1. %s\n", strings.Repeat("  ", level), _text)
 
 		if node.Images != nil && len(node.Images) != 0 {
-			_markdown += printf("\n%s![image](https://mubu.com/%s)\n\n", strings.Repeat("  ", level+1), node.Images[0].URI)
+			_markdown += printf("%s![image](https://mubu.com/%s)\n", strings.Repeat("  ", level+1), node.Images[0].URI)
 		}
 	} else {
 		level = 0
-		_markdown = printf("%s %s\n", strings.Repeat("#", node.Heading), _text)
+		_markdown = printf("%s %s\n\n", strings.Repeat("#", node.Heading), _text)
 		if node.Images != nil && len(node.Images) != 0 {
-			_markdown += printf("\n%s![image](https://mubu.com/%s)\n\n", strings.Repeat("  ", level+1), node.Images[0].URI)
+			_markdown += printf("%s![image](https://mubu.com/%s)\n\n", strings.Repeat("  ", level+1), node.Images[0].URI)
 		}
 	}
 
 	if len(node.Children) > 0 {
-		_markdown += "\n"
 		for _, n := range node.Children {
 			_a := t._Markdown(level, n)
 			if _a == "" {
